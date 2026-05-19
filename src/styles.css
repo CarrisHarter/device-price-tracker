@@ -80,7 +80,55 @@ body {
   gap: 12px;
   font-size: 12px;
   color: var(--muted);
+}
+
+.status-panel {
+  max-width: 340px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.status-panel__row + .status-panel__row {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.status-panel__row--primary .status-panel__value {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.status-panel__label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+
+.status-panel__value {
+  margin: 0;
   font-family: var(--mono);
+  font-size: 12px;
+}
+
+.status-panel__hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.status-panel__loading {
+  margin: 0;
 }
 
 .source-badge {
@@ -405,7 +453,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 10px;
+  gap: 12px;
 }
 
 .app-nav {
@@ -430,11 +478,6 @@ body {
 .app-nav a.active {
   color: var(--accent);
   background: var(--band);
-}
-
-.scrape-status {
-  font-size: 12px;
-  color: var(--muted);
 }
 
 .docs-page {

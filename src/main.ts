@@ -290,22 +290,53 @@ function aggregateStats(skus: LiveSku[]) {
   };
 }
 
-function scrapeStatusLabel(): string {
+function renderStatusPanel(): string {
   const feed = getPriceFeedStatus();
-  if (feed === "loading") return "Checking prices…";
+  if (feed === "loading") {
+    return `
+      <div class="status-panel" role="status" aria-live="polite">
+        <p class="status-panel__loading">Loading prices…</p>
+      </div>
+    `;
+  }
 
   const checked = getLastClientCheckAt();
   const scrapeIso = getLastScrapeAt() ?? getLastFetchRun();
 
-  const parts: string[] = [];
-  if (checked != null) {
-    parts.push(`Live check ${formatRelativeAgo(checked)} (${formatDateTime(new Date(checked))})`);
-  }
-  if (scrapeIso) {
-    parts.push(`Apple scrape ${formatDateTime(new Date(scrapeIso))}`);
+  if (!scrapeIso && checked == null) {
+    return `
+      <div class="status-panel" role="status">
+        <p class="status-panel__hint">Using built-in launch prices until the first cloud scrape.</p>
+      </div>
+    `;
   }
 
-  return parts.length > 0 ? parts.join(" · ") : "Apple Japan prices · seed data";
+  const scrapeWhen = scrapeIso
+    ? formatDateTime(new Date(scrapeIso))
+    : "—";
+  const refreshWhen =
+    checked != null ? formatRelativeAgo(checked) : "not yet";
+
+  return `
+    <div class="status-panel" role="status" aria-live="polite">
+      <div class="status-panel__row status-panel__row--primary">
+        <span class="status-panel__label">¥ amounts on this page</span>
+        <p class="status-panel__value">From Apple Store Japan · <time datetime="${scrapeIso ?? ""}">${scrapeWhen}</time></p>
+        <p class="status-panel__hint">This is when list prices were last pulled from Apple (hourly cloud job).</p>
+      </div>
+      <div class="status-panel__row">
+        <span class="status-panel__label">Page refresh</span>
+        <p class="status-panel__value">${refreshWhen}</p>
+        <p class="status-panel__hint">The app re-downloads the same price file every second. Refreshing does not change ¥ until the next Apple scrape.</p>
+      </div>
+    </div>
+  `;
+}
+
+function updateStatusPanel(): void {
+  const el = document.querySelector(".status-panel");
+  if (!el) return;
+  el.outerHTML = renderStatusPanel();
 }
 
 function bindControls(): void {
@@ -360,8 +391,6 @@ function render(): void {
 
   const skus = filteredSkus();
   const stats = aggregateStats(skus);
-  const fetchLabel = scrapeStatusLabel();
-
   app.innerHTML = `
     <header class="layout-header">
       <div>
@@ -374,8 +403,8 @@ function render(): void {
         </nav>
         <div class="status-row">
           <span class="source-badge">Public data</span>
-          <span class="scrape-status">${fetchLabel}</span>
         </div>
+        ${renderStatusPanel()}
       </div>
     </header>
 
@@ -450,10 +479,7 @@ function render(): void {
 function init(): void {
   render();
   onPriceFeedStatus(() => {
-    if (appView === "tracker") {
-      const el = document.querySelector(".scrape-status");
-      if (el) el.textContent = scrapeStatusLabel();
-    }
+    if (appView === "tracker") updateStatusPanel();
   });
   onPricesUpdated(() => {
     if (appView === "tracker") render();
