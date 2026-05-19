@@ -1,6 +1,7 @@
 import "./styles.css";
 import { CATEGORY_LABELS, type AppleCategory } from "./data/apple-skus";
 import { PUBLIC_SOURCE } from "./data/public-source";
+import { SCRAPE_TTL_HOURS, SCRAPE_TTL_MS } from "./data/scrape-config";
 import { getLastFetchRun } from "./data/public-price-history";
 import {
   projectFuturePrice,
@@ -54,6 +55,18 @@ function formatDateTime(d: Date): string {
     minute: "2-digit",
     second: "2-digit",
   });
+}
+
+function scrapeIntervalLabel(): string {
+  return SCRAPE_TTL_HOURS === 1
+    ? "every hour"
+    : `every ${SCRAPE_TTL_HOURS} hours`;
+}
+
+function nextScrapeHint(scrapeIso: string | null): string {
+  if (!scrapeIso) return "";
+  const nextAt = Date.parse(scrapeIso) + SCRAPE_TTL_MS;
+  return `Next scrape scheduled about ${formatDateTime(new Date(nextAt))}.`;
 }
 
 function formatRelativeAgo(atMs: number): string {
@@ -322,12 +335,12 @@ function renderStatusPanel(): string {
       <div class="status-panel__row status-panel__row--primary">
         <span class="status-panel__label">¥ amounts on this page</span>
         <p class="status-panel__value">From Apple Store Japan · <time datetime="${scrapeIso ?? ""}">${scrapeWhen}</time></p>
-        <p class="status-panel__hint">This is when list prices were last pulled from Apple (hourly cloud job).</p>
+        <p class="status-panel__hint">Apple list prices can only be re-fetched ${scrapeIntervalLabel()} by our cloud job — not on each page refresh. ${nextScrapeHint(scrapeIso)}</p>
       </div>
       <div class="status-panel__row">
         <span class="status-panel__label">Page refresh</span>
         <p class="status-panel__value">${refreshWhen}</p>
-        <p class="status-panel__hint">The app re-downloads the same price file every second. Refreshing does not change ¥ until the next Apple scrape.</p>
+        <p class="status-panel__hint">This page re-downloads the same file every second. ¥ amounts stay the same until the next Apple scrape (${scrapeIntervalLabel()}).</p>
       </div>
     </div>
   `;
