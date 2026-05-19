@@ -1,14 +1,13 @@
 # Scrapes Apple Store Japan on a schedule and deploys the static site.
-# Visitors only open the URL — nothing runs on their device.
 
 name: Scrape and deploy
 
 on:
   schedule:
-    - cron: "0 */6 * * *" # every 6 hours (UTC)
+    - cron: "0 */6 * * *"
   workflow_dispatch:
   push:
-    branches: [main, master]
+    branches: [main]
 
 permissions:
   contents: write
@@ -20,11 +19,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,13 +54,20 @@ jobs:
         run: npm run build
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
