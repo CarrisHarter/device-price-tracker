@@ -11,7 +11,6 @@ import {
 } from "./lib/forecast";
 import { analyzeHistory } from "./lib/history";
 import {
-  getLastClientCheckAt,
   getLastScrapeAt,
   getPriceFeedStatus,
   onPriceFeedStatus,
@@ -67,16 +66,6 @@ function nextScrapeHint(scrapeIso: string | null): string {
   if (!scrapeIso) return "";
   const nextAt = Date.parse(scrapeIso) + SCRAPE_TTL_MS;
   return `Next scrape scheduled about ${formatDateTime(new Date(nextAt))}.`;
-}
-
-function formatRelativeAgo(atMs: number): string {
-  const sec = Math.max(0, Math.floor((Date.now() - atMs) / 1000));
-  if (sec < 2) return "just now";
-  if (sec < 60) return `${sec}s ago`;
-  const min = Math.floor(sec / 60);
-  if (min < 60) return `${min}m ago`;
-  const hr = Math.floor(min / 60);
-  return `${hr}h ago`;
 }
 
 function formatChartDate(d: Date): string {
@@ -313,10 +302,9 @@ function renderStatusPanel(): string {
     `;
   }
 
-  const checked = getLastClientCheckAt();
   const scrapeIso = getLastScrapeAt() ?? getLastFetchRun();
 
-  if (!scrapeIso && checked == null) {
+  if (!scrapeIso) {
     return `
       <div class="status-panel" role="status">
         <p class="status-panel__hint">Using built-in launch prices until the first cloud scrape.</p>
@@ -324,23 +312,14 @@ function renderStatusPanel(): string {
     `;
   }
 
-  const scrapeWhen = scrapeIso
-    ? formatDateTime(new Date(scrapeIso))
-    : "—";
-  const refreshWhen =
-    checked != null ? formatRelativeAgo(checked) : "not yet";
+  const scrapeWhen = formatDateTime(new Date(scrapeIso));
 
   return `
     <div class="status-panel" role="status" aria-live="polite">
       <div class="status-panel__row status-panel__row--primary">
         <span class="status-panel__label">¥ amounts on this page</span>
-        <p class="status-panel__value">From Apple Store Japan · <time datetime="${scrapeIso ?? ""}">${scrapeWhen}</time></p>
-        <p class="status-panel__hint">Apple list prices can only be re-fetched ${scrapeIntervalLabel()} by our cloud job — not on each page refresh. ${nextScrapeHint(scrapeIso)}</p>
-      </div>
-      <div class="status-panel__row">
-        <span class="status-panel__label">Page refresh</span>
-        <p class="status-panel__value">${refreshWhen}</p>
-        <p class="status-panel__hint">This page re-downloads the same file every second. ¥ amounts stay the same until the next Apple scrape (${scrapeIntervalLabel()}).</p>
+        <p class="status-panel__value">From Apple Store Japan · <time datetime="${scrapeIso}">${scrapeWhen}</time></p>
+        <p class="status-panel__hint">List prices are re-fetched from Apple ${scrapeIntervalLabel()} by our cloud job. ${nextScrapeHint(scrapeIso)}</p>
       </div>
     </div>
   `;
