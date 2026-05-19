@@ -359,8 +359,7 @@ function render(): void {
     <p class="disclaimer">
       ${PUBLIC_SOURCE.note}
       Sources: ${PUBLIC_SOURCE.references.join("; ")}.
-      Prices update automatically in dev (see <a href="#" id="nav-docs">How it works</a>).
-      SBM&amp;S purchase prices will differ.
+      Forecast method: <a href="#" id="nav-docs">How it works</a>.
     </p>
   `;
 

@@ -11,5 +11,5 @@ export const PUBLIC_SOURCE = {
     "Apple Store Japan (apple.com/jp)",
     "Apple Newsroom Japan (product launches & pricing)",
   ],
-  note: "Prices shown are published Apple Japan tax-included list prices. SBM&S quotes, internal estimates, and margins are not included.",
+  note: "Prices shown are published Apple Japan tax-included list prices only.",
 } as const;

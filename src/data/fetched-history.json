@@ -1,5 +1,5 @@
 {
-  "lastRun": "2026-05-19T07:11:14.008Z",
+  "lastRun": "2026-05-19T07:27:35.144Z",
   "records": [
     {
       "skuId": "imac-24-m4",
@@ -10,7 +10,7 @@
     {
       "skuId": "ipad-air-13",
       "date": "2026-05-19",
-      "price": 98800,
+      "price": 128800,
       "source": "apple.com/jp/shop/buy-ipad/ipad-air"
     },
     {
@@ -22,7 +22,7 @@
     {
       "skuId": "ipad-pro-13",
       "date": "2026-05-19",
-      "price": 442800,
+      "price": 218800,
       "source": "apple.com/jp/shop/buy-ipad/ipad-pro"
     },
     {
