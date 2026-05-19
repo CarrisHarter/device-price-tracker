@@ -55,6 +55,7 @@ export function onPricesUpdated(cb: () => void): () => void {
 }
 
 function setStatus(next: PriceFeedStatus): void {
+  if (status === next) return;
   status = next;
   notifyStatus();
 }
@@ -98,13 +99,11 @@ export async function refreshPricesFromServer(): Promise<boolean> {
     applyRuntimeFetch(data);
     reloadMarket();
     setStatus("live");
-    notifyStatus();
 
     if (changed) notifyDataUpdated();
     return true;
   } catch {
     if (firstLoad) setStatus("cached");
-    notifyStatus();
     return false;
   }
 }

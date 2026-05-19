@@ -64,8 +64,12 @@ function scrapeIntervalLabel(): string {
 
 function nextScrapeHint(scrapeIso: string | null): string {
   if (!scrapeIso) return "";
-  const nextAt = Date.parse(scrapeIso) + SCRAPE_TTL_MS;
-  return `Next scrape scheduled about ${formatDateTime(new Date(nextAt))}.`;
+  const remainingMs = Date.parse(scrapeIso) + SCRAPE_TTL_MS - Date.now();
+  if (remainingMs <= 0) return "Next Apple update due soon.";
+  const min = Math.ceil(remainingMs / 60_000);
+  if (min < 60) return `Next Apple update in ~${min} min.`;
+  const hr = Math.ceil(min / 60);
+  return `Next Apple update in ~${hr} hr.`;
 }
 
 function formatChartDate(d: Date): string {
@@ -76,41 +80,27 @@ function formatChartDate(d: Date): string {
   });
 }
 
-interface SparklineTick {
-  xPct: number;
-  label: string;
-}
-
-function chartTicks(history: PricePoint[], count = 5): SparklineTick[] {
+function chartTickLabels(history: PricePoint[]): string[] {
   if (history.length === 0) return [];
   const n = history.length;
-  const indices: number[] = [];
-  for (let i = 0; i < count; i++) {
-    indices.push(Math.round((i / Math.max(1, count - 1)) * (n - 1)));
-  }
+  if (n === 1) return [formatChartDate(new Date(history[0]!.t))];
+  const indices = [0, Math.floor((n - 1) / 2), n - 1];
   const seen = new Set<number>();
-  return indices
-    .filter((idx) => {
-      if (seen.has(idx)) return false;
-      seen.add(idx);
-      return true;
-    })
-    .map((idx) => ({
-      xPct: n <= 1 ? 0 : (idx / (n - 1)) * 100,
-      label: formatChartDate(new Date(history[idx]!.t)),
-    }));
+  const labels: string[] = [];
+  for (const idx of indices) {
+    if (seen.has(idx)) continue;
+    seen.add(idx);
+    labels.push(formatChartDate(new Date(history[idx]!.t)));
+  }
+  return labels;
 }
 
 function renderSparkline(history: PricePoint[]): string {
   const width = 400;
   const height = 48;
   const path = sparklinePath(history, width, height);
-  const ticks = chartTicks(history);
-  const axis = ticks
-    .map(
-      (t) =>
-        `<span class="sparkline__tick" style="left:${t.xPct.toFixed(1)}%">${t.label}</span>`
-    )
+  const axis = chartTickLabels(history)
+    .map((label) => `<span>${label}</span>`)
     .join("");
 
   return `
@@ -316,11 +306,12 @@ function renderStatusPanel(): string {
 
   return `
     <div class="status-panel" role="status" aria-live="polite">
-      <div class="status-panel__row status-panel__row--primary">
-        <span class="status-panel__label">¥ amounts on this page</span>
-        <p class="status-panel__value">From Apple Store Japan · <time datetime="${scrapeIso}">${scrapeWhen}</time></p>
-        <p class="status-panel__hint">List prices are re-fetched from Apple ${scrapeIntervalLabel()} by our cloud job. ${nextScrapeHint(scrapeIso)}</p>
+      <div class="status-panel__head">
+        <span class="source-badge">Public data</span>
+        <span class="status-panel__label">Apple Store Japan · tax-included list prices</span>
       </div>
+      <p class="status-panel__value">Last scrape <time datetime="${scrapeIso}">${scrapeWhen}</time></p>
+      <p class="status-panel__hint">Cloud job refreshes from Apple ${scrapeIntervalLabel()}. ${nextScrapeHint(scrapeIso)}</p>
     </div>
   `;
 }
@@ -367,13 +358,13 @@ function render(): void {
   if (appView === "docs") {
     app.innerHTML = `
       <header class="layout-header">
-        <div>
+        <div class="layout-header__top">
           <h1>Apple Japan price tracker</h1>
+          <nav class="app-nav" aria-label="Site">
+            <a href="#" id="nav-tracker">Tracker</a>
+            <a href="#" id="nav-docs" class="active" aria-current="page">How it works</a>
+          </nav>
         </div>
-        <nav class="app-nav" aria-label="Site">
-          <a href="#" id="nav-tracker">Tracker</a>
-          <a href="#" id="nav-docs" class="active" aria-current="page">How it works</a>
-        </nav>
       </header>
       ${renderHowItWorks()}
     `;
@@ -385,19 +376,14 @@ function render(): void {
   const stats = aggregateStats(skus);
   app.innerHTML = `
     <header class="layout-header">
-      <div>
+      <div class="layout-header__top">
         <h1>Apple Japan price tracker</h1>
-      </div>
-      <div class="header-end">
         <nav class="app-nav" aria-label="Site">
           <a href="#" id="nav-tracker" class="active" aria-current="page">Tracker</a>
           <a href="#" id="nav-docs">How it works</a>
         </nav>
-        <div class="status-row">
-          <span class="source-badge">Public data</span>
-        </div>
-        ${renderStatusPanel()}
       </div>
+      ${renderStatusPanel()}
     </header>
 
     <div class="toolbar">
