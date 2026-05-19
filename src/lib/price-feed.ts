@@ -22,9 +22,21 @@ let statusListeners: ((s: PriceFeedStatus) => void)[] = [];
 let dataListeners: (() => void)[] = [];
 let lastPayloadSig = "";
 let pollTimer: number | null = null;
+/** When the browser last successfully loaded prices.json */
+let lastClientCheckAt: number | null = null;
+/** lastRun from prices.json (cloud Apple scrape) */
+let lastScrapeAt: string | null = null;
 
 export function getPriceFeedStatus(): PriceFeedStatus {
   return status;
+}
+
+export function getLastClientCheckAt(): number | null {
+  return lastClientCheckAt;
+}
+
+export function getLastScrapeAt(): string | null {
+  return lastScrapeAt;
 }
 
 export function onPriceFeedStatus(cb: (s: PriceFeedStatus) => void): () => void {
@@ -44,7 +56,11 @@ export function onPricesUpdated(cb: () => void): () => void {
 
 function setStatus(next: PriceFeedStatus): void {
   status = next;
-  for (const cb of statusListeners) cb(next);
+  notifyStatus();
+}
+
+function notifyStatus(): void {
+  for (const cb of statusListeners) cb(status);
 }
 
 function notifyDataUpdated(): void {
@@ -72,6 +88,9 @@ export async function refreshPricesFromServer(): Promise<boolean> {
     const data = (await res.json()) as FetchedPayload;
     if (!data.records?.length) throw new Error("empty payload");
 
+    lastClientCheckAt = Date.now();
+    lastScrapeAt = data.lastRun || null;
+
     const sig = payloadSignature(data);
     const changed = sig !== lastPayloadSig;
     lastPayloadSig = sig;
@@ -79,11 +98,13 @@ export async function refreshPricesFromServer(): Promise<boolean> {
     applyRuntimeFetch(data);
     reloadMarket();
     setStatus("live");
+    notifyStatus();
 
     if (changed) notifyDataUpdated();
     return true;
   } catch {
     if (firstLoad) setStatus("cached");
+    notifyStatus();
     return false;
   }
 }

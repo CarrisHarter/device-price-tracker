@@ -10,7 +10,7 @@ After you push to GitHub and enable **Pages → Build and deployment → GitHub 
 
 ## How prices update
 
-A cloud job (`.github/workflows/scrape-and-deploy.yml`) runs every 6 hours:
+A cloud job (`.github/workflows/scrape-and-deploy.yml`) runs every hour:
 
 1. Scrapes Apple Store Japan
 2. Updates `prices.json` on the site

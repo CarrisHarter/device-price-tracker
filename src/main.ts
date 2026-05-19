@@ -10,6 +10,8 @@ import {
 } from "./lib/forecast";
 import { analyzeHistory } from "./lib/history";
 import {
+  getLastClientCheckAt,
+  getLastScrapeAt,
   getPriceFeedStatus,
   onPriceFeedStatus,
   onPricesUpdated,
@@ -41,6 +43,82 @@ function formatRelease(iso: string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function formatDateTime(d: Date): string {
+  return d.toLocaleString(PUBLIC_SOURCE.locale, {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function formatRelativeAgo(atMs: number): string {
+  const sec = Math.max(0, Math.floor((Date.now() - atMs) / 1000));
+  if (sec < 2) return "just now";
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  return `${hr}h ago`;
+}
+
+function formatChartDate(d: Date): string {
+  return d.toLocaleDateString(PUBLIC_SOURCE.locale, {
+    month: "short",
+    day: "numeric",
+    year: "2-digit",
+  });
+}
+
+interface SparklineTick {
+  xPct: number;
+  label: string;
+}
+
+function chartTicks(history: PricePoint[], count = 5): SparklineTick[] {
+  if (history.length === 0) return [];
+  const n = history.length;
+  const indices: number[] = [];
+  for (let i = 0; i < count; i++) {
+    indices.push(Math.round((i / Math.max(1, count - 1)) * (n - 1)));
+  }
+  const seen = new Set<number>();
+  return indices
+    .filter((idx) => {
+      if (seen.has(idx)) return false;
+      seen.add(idx);
+      return true;
+    })
+    .map((idx) => ({
+      xPct: n <= 1 ? 0 : (idx / (n - 1)) * 100,
+      label: formatChartDate(new Date(history[idx]!.t)),
+    }));
+}
+
+function renderSparkline(history: PricePoint[]): string {
+  const width = 400;
+  const height = 48;
+  const path = sparklinePath(history, width, height);
+  const ticks = chartTicks(history);
+  const axis = ticks
+    .map(
+      (t) =>
+        `<span class="sparkline__tick" style="left:${t.xPct.toFixed(1)}%">${t.label}</span>`
+    )
+    .join("");
+
+  return `
+    <div class="sparkline-wrap">
+      <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Apple Japan tax-included price history">
+        <path d="${path}" />
+      </svg>
+      <div class="sparkline__axis" aria-hidden="true">${axis}</div>
+    </div>
+  `;
 }
 
 const app = document.getElementById("app")!;
@@ -95,7 +173,7 @@ function renderSkuCard(live: LiveSku): string {
     forecast.low,
     forecast.high
   );
-  const spark = sparklinePath(history, 400, 48);
+  const sparkBlock = renderSparkline(history);
   const bandPct = (forecast.variancePct * 100).toFixed(0);
 
   return `
@@ -166,11 +244,7 @@ function renderSkuCard(live: LiveSku): string {
         <span>±${bandPct}% from history</span>
         <span>${formatJpy(forecast.high)}</span>
       </div>
-      <div class="sparkline">
-        <svg viewBox="0 0 400 48" preserveAspectRatio="none" aria-label="Apple Japan tax-included price history">
-          <path d="${spark}" />
-        </svg>
-      </div>
+      ${sparkBlock}
     </article>
   `;
 }
@@ -217,14 +291,21 @@ function aggregateStats(skus: LiveSku[]) {
 }
 
 function scrapeStatusLabel(): string {
-  const lastFetch = getLastFetchRun();
   const feed = getPriceFeedStatus();
-  if (feed === "loading") return "Loading latest prices…";
-  if (lastFetch) {
-    const when = new Date(lastFetch).toLocaleString(PUBLIC_SOURCE.locale);
-    return `Apple Japan prices · updated ${when}`;
+  if (feed === "loading") return "Checking prices…";
+
+  const checked = getLastClientCheckAt();
+  const scrapeIso = getLastScrapeAt() ?? getLastFetchRun();
+
+  const parts: string[] = [];
+  if (checked != null) {
+    parts.push(`Live check ${formatRelativeAgo(checked)} (${formatDateTime(new Date(checked))})`);
   }
-  return "Apple Japan prices · seed data";
+  if (scrapeIso) {
+    parts.push(`Apple scrape ${formatDateTime(new Date(scrapeIso))}`);
+  }
+
+  return parts.length > 0 ? parts.join(" · ") : "Apple Japan prices · seed data";
 }
 
 function bindControls(): void {

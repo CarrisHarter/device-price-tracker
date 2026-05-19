@@ -4,7 +4,7 @@ name: Scrape and deploy
 
 on:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 * * * *" # hourly Apple JP scrape (UTC)
   workflow_dispatch:
   push:
     branches: [main]
@@ -60,7 +60,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 

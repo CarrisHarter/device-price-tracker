@@ -341,23 +341,47 @@ body {
   margin-top: 4px;
 }
 
-.sparkline {
+.sparkline-wrap {
   grid-column: 1 / -1;
-  height: 48px;
   width: 100%;
 }
 
-.sparkline svg {
+.sparkline-wrap svg {
   display: block;
   width: 100%;
-  height: 100%;
+  height: 48px;
 }
 
-.sparkline path {
+.sparkline-wrap path {
   fill: none;
   stroke: var(--accent);
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
+}
+
+.sparkline__axis {
+  position: relative;
+  height: 18px;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+.sparkline__tick {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.sparkline__tick:first-child {
+  transform: none;
+}
+
+.sparkline__tick:last-child {
+  left: auto !important;
+  right: 0;
+  transform: none;
 }
 
 .empty-state {
