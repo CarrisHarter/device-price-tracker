@@ -1,5 +1,5 @@
 {
-  "lastRun": "2026-05-23T23:52:41.593Z",
+  "lastRun": "2026-05-24T02:41:33.264Z",
   "records": [
     {
       "skuId": "imac-24-m4",
@@ -358,6 +358,78 @@
     {
       "skuId": "studio-display",
       "date": "2026-05-23",
+      "price": 269800,
+      "source": "apple.com/jp/shop/buy-mac/studio-display"
+    },
+    {
+      "skuId": "imac-24-m4",
+      "date": "2026-05-24",
+      "price": 198800,
+      "source": "apple.com/jp/shop/buy-mac/imac"
+    },
+    {
+      "skuId": "ipad-air-13",
+      "date": "2026-05-24",
+      "price": 128800,
+      "source": "apple.com/jp/shop/buy-ipad/ipad-air"
+    },
+    {
+      "skuId": "ipad-pro-11",
+      "date": "2026-05-24",
+      "price": 168800,
+      "source": "apple.com/jp/shop/buy-ipad/ipad-pro"
+    },
+    {
+      "skuId": "ipad-pro-13",
+      "date": "2026-05-24",
+      "price": 218800,
+      "source": "apple.com/jp/shop/buy-ipad/ipad-pro"
+    },
+    {
+      "skuId": "mac-mini-m4",
+      "date": "2026-05-24",
+      "price": 124800,
+      "source": "apple.com/jp/shop/buy-mac/mac-mini"
+    },
+    {
+      "skuId": "mac-mini-m4-pro",
+      "date": "2026-05-24",
+      "price": 248800,
+      "source": "apple.com/jp/shop/buy-mac/mac-mini"
+    },
+    {
+      "skuId": "mac-studio-m4",
+      "date": "2026-05-24",
+      "price": 328800,
+      "source": "apple.com/jp/shop/buy-mac/mac-studio"
+    },
+    {
+      "skuId": "mba-13-m4",
+      "date": "2026-05-24",
+      "price": 184800,
+      "source": "apple.com/jp/shop/buy-mac/macbook-air"
+    },
+    {
+      "skuId": "mba-15-m4",
+      "date": "2026-05-24",
+      "price": 219800,
+      "source": "apple.com/jp/shop/buy-mac/macbook-air"
+    },
+    {
+      "skuId": "mbp-14-m4",
+      "date": "2026-05-24",
+      "price": 279800,
+      "source": "apple.com/jp/shop/buy-mac/macbook-pro"
+    },
+    {
+      "skuId": "mbp-16-m4",
+      "date": "2026-05-24",
+      "price": 449800,
+      "source": "apple.com/jp/shop/buy-mac/macbook-pro"
+    },
+    {
+      "skuId": "studio-display",
+      "date": "2026-05-24",
       "price": 269800,
       "source": "apple.com/jp/shop/buy-mac/studio-display"
     }
